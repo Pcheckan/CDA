@@ -156,7 +156,6 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
 bool Check_valid_jump(unsigned PC)
 {
 	// Check to ensure we are at an address that is a multiple of 4
-	// test
 	if (PC % 4 == 0)
 	{
 		return true;
