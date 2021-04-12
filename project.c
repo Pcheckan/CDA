@@ -1,6 +1,22 @@
 #include "spimcore.h"
 
 
+// Helper Functions
+
+int Check_valid_jump_multiple_four(unsigned PC)
+{
+	// Check to ensure we are at an address that is a multiple of 4
+	if (PC % 4 == 0)
+	{
+		// if divisible, return 1
+		return 1;
+	}
+		// if not divisible, return 0
+	else
+		return 0;
+}
+
+
 /* ALU */
 /* 10 Points */
 void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
@@ -80,10 +96,9 @@ int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 	unsigned memLocation = PC >> 2;
 
 	// If the check returns false, we hit a halt condition.
-	if (!Check_valid_jump)
-	{
+	int check = Check_valid_jump_multiple_four(PC);
+	if (check == 0)
 		return 1;
-	}
 
 	// Set the instruction
 	*instruction = Mem[memLocation];
@@ -153,13 +168,4 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
 
 }
 
-bool Check_valid_jump(unsigned PC)
-{
-	// Check to ensure we are at an address that is a multiple of 4
-	if (PC % 4 == 0)
-	{
-		return true;
-	}
-	else
-		return false;
-}
+
