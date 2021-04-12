@@ -5,6 +5,71 @@
 /* 10 Points */
 void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 {
+	// Using a switch statement to determine which operation takes place
+
+	switch ((int) ALUControl)
+	{
+		// 000 | Z = A + B
+		case 0:
+			*ALUresult = A + B;
+		break;
+	
+		// 001 | Z = A - B
+		case 1:
+			*ALUresult = A - B;
+		break;
+
+		// 010 | if A < B, Z = 1; Else Z = 0
+		case 2:
+			if ((signed) A < (signed) B) 
+			*ALUresult = 1;
+
+			else
+			*ALUresult = 0;
+		break;
+
+		// 011 | If A < B, Z = 1; Else Z = 0 (A and B are unsigned)
+		case 3:
+			if ((unsigned) A < (unsigned) B)
+			*ALUresult = 1;
+
+			else
+			*ALUresult = 0;
+		break;
+
+		// 100 | Z = A AND B
+		case 4:
+			*ALUresult = A & B;
+		break;
+
+		// 101 | Z = A OR B
+		case 5:
+			*ALUresult = A | B;
+		break;
+
+		// 110 | Shift left B by 16 bits
+		case 6:
+			*ALUresult = B << 16;
+		break;
+
+		// 111 | Z = NOT A
+		case 7: 
+			*ALUresult = !A;
+		break;
+	}
+
+	// Assign Zero to 1 if the result is zero; otherwise, assign 0. 
+
+	// If the result is zero set Zero to 1
+	if (*ALUresult == 0)
+	{
+		*Zero = 1;
+	}
+	// Otherwise set Zero to 0
+	else
+	{
+		*Zero = 0;
+	}
 
 }
 
