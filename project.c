@@ -76,7 +76,19 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 /* instruction fetch */
 /* 10 Points */
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
-{
+{	
+	unsigned memLocation = PC >> 2;
+
+	// If the check returns false, we hit a halt condition.
+	if (!Check_valid_jump)
+	{
+		return 1;
+	}
+
+	// Set the instruction
+	*instruction = Mem[memLocation];
+	return 0;
+
 
 }
 
@@ -141,3 +153,13 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
 
 }
 
+bool Check_valid_jump(unsigned PC)
+{
+	// Check to ensure we are at an address that is a multiple of 4
+	if (PC % 4 == 0)
+	{
+		return true;
+	}
+	else
+		return false;
+}
