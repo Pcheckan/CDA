@@ -159,10 +159,6 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 			offset = offset/2;
 		}
 		
-		for(int j = 8 - 1; j >= 0; j--)
-		{
-			printf("%d", binaryNum[j]);
-		}
 	}
 	
 	else if(offset < 0)
