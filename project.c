@@ -70,7 +70,7 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 
 		// 111 | Z = NOT A
 		case 7: 
-			*ALUresult = !A;
+			*ALUresult = ~A;
 		break;
 	}
 
@@ -128,6 +128,10 @@ int instruction_decode(unsigned op,struct_controls *controls)
 /* 5 Points */
 void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigned *data2)
 {
+	// Fill data1 with value from r1
+	*data1 = Reg[r1];
+	// Fill data2 with value from r2
+	*data2 = Reg[r2];
 
 }
 
