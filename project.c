@@ -155,6 +155,19 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 /* 10 Points */
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
 {
+	// read memory
+	if (MemRead == 1)
+	{
+		// check to ensure mem address is valid (halt condition)
+		if ((ALUresult % 4) == 0)
+		{
+			// read the content of mem location addressed by ALUResult to memdata
+			*memdata = Mem[ALUresult >> 2];
+		}
+		else
+			// If we hit a halt condition, return 1
+			return 1;
+	}
 
 }
 
