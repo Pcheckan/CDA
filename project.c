@@ -29,7 +29,7 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 		case 0:
 			*ALUresult = A + B;
 		break;
-	
+	 
 		// 001 | Z = A - B
 		case 1:
 			*ALUresult = A - B;
