@@ -263,8 +263,80 @@ void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigne
 /* 10 Points */
 void sign_extend(unsigned offset,unsigned *extended_value)
 {
-
+	int binaryNum[8];
+	
+	int i = 0; 
+	
+	for(int i = 0; i < 8; i++)
+	{
+		binaryNum[i] = 0; 
+	}
+	
+	if(offset > 0)
+	{
+	
+		while(offset > 0)
+		{
+			binaryNum[i] = offset%2;
+			offset = offset/2;
+		}
+		
+	}
+	
+	else if(offset < 0)
+	{
+		offset = offset*-1;
+		
+		while(offset > 0)
+		{
+			binaryNum[i] = offset%2;
+			offset = offset/2;
+			i++;
+		}
+		
+		
+		for(int j = 8 - 1; j >= 0; j--)
+		{
+			if(binaryNum[j] == 0)
+			{
+				binaryNum[j] = 1;
+			}
+			
+			else if(binaryNum[j] == 1)
+			{
+				binaryNum[j] = 0;
+			}
+		}
+		
+		
+		int remaind = 1;
+		
+		for(int i = 0; i < 8; i++)
+		{
+			if(remaind == 1 && binaryNum[i] == 1)
+			{
+				binaryNum[i] = 0;
+			}
+			
+			else if(remaind == 1 && binaryNum[i] == 0)
+			{
+				binaryNum[i] = 1;
+				break;
+			}
+			
+		}
+		
+		extended_value = binaryNum;
+		
+		/*
+		for(int j = 8 - 1; j >= 0; j--)
+		{
+			printf("%d", binaryNum[j]);
+		}*/
+		
+	}
 }
+
 
 /* ALU operations */
 /* 10 Points */
