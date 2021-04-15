@@ -348,6 +348,21 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
 {
 
+	// Writing
+	if (MemWrite == 1)
+	{
+		// check halt condition
+		if ((ALUresult % 4) == 0)
+		{
+			// write to the memory the value in data2
+			Mem[ALUresult >> 2] = data2;
+		}
+		// If halt condition occurs, return 1
+		else
+			return 1;
+	}
+
+	return 0;
 }
 
 
