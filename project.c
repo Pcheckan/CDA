@@ -164,11 +164,26 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 			// read the content of mem location addressed by ALUResult to memdata
 			*memdata = Mem[ALUresult >> 2];
 		}
+		// If we hit a halt condition, return 1
 		else
-			// If we hit a halt condition, return 1
 			return 1;
 	}
 
+	// Writing
+	if (MemWrite == 1)
+	{
+		// check halt condition
+		if ((ALUresult % 4) == 0)
+		{
+			// write to the memory the value in data2
+			Mem[ALUresult >> 2] = data2;
+		}
+		// If halt condition occurs, return 1
+		else
+			return 1;
+	}
+
+	return 0;
 }
 
 
