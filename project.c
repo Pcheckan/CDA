@@ -112,7 +112,13 @@ int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 /* 10 Points */
 void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
-
+	*op     = (instruction & 0xfc000000) >>26;	// [31-26]
+	*r1     = (instruction & 0x3e00000) >> 21;	// [25-21]
+	*r2     = (instruction & 0x1f0000) >> 16;	// [20-16]
+	*r3     = (instruction & 0xf800) >> 11;		// [15-11]
+	*funct  = (instruction & 0x1f);				// [5-0]
+	*offset = (instruction & 0xffff);			// [15-0]
+	*jsec   = (instruction & 0x3ffffff);			// [25-0]
 }
 
 
@@ -125,119 +131,119 @@ int instruction_decode(unsigned op,struct_controls *controls)
 	{
 		case 0://000000;R-type instruction
 		{
-			controls->RegDst = 1;
-			controls->Jump = 0; 
-			controls->Branch = 0; 
-			controls->MemRead = 0; 
-			controls->MemtoReg = 0; 
-			controls->ALUOp = 7;
-			controls->MemWrite = 0; 
-			controls->ALUSrc = 0; 
-			controls->RegWrite  = 1;
+			controls->RegDst   	= 1;
+			controls->Jump     	= 0; 
+			controls->Branch   	= 0; 
+			controls->MemRead  	= 0; 
+			controls->MemtoReg 	= 0; 
+			controls->ALUOp    	= 7;// 111
+			controls->MemWrite 	= 0; 
+			controls->ALUSrc   	= 0; 
+			controls->RegWrite 	= 1;
 			break;
 		}
 		case 2://000010; "j" jump
 		{
-			controls->RegDst = 2;  
-			controls->Jump = 1;
-			controls->Branch = 0;  
-			controls->MemRead = 0;  
-			controls->MemtoReg = 2;  
-			controls->ALUOp = 2;  
-			controls->MemWrite = 0;
-			controls->ALUSrc = 2; 
-			controls->RegWrite = 0; 
+			controls->RegDst 	= 2; 
+			controls->Jump 		= 1;
+			controls->Branch 	= 0;  
+			controls->MemRead 	= 0;  
+			controls->MemtoReg 	= 2;  
+			controls->ALUOp 	= 0;// don't care  
+			controls->MemWrite 	= 0;
+			controls->ALUSrc 	= 2;
+			controls->RegWrite 	= 0; 
 			break;	
 		}
 		case 4://000100; "beq" branch on equal 
 		{
-			controls->RegDst = 2; 
-			controls->Jump =  0;
-			controls->Branch =  1;
-			controls->MemRead = 0;
-			controls->MemtoReg = 2;
-			controls->ALUOp = 1;
-			controls->MemWrite = 0;
-			controls->ALUSrc = 0;
-			controls->RegWrite = 0;
+			controls->RegDst 	= 2; 
+			controls->Jump 		= 0;
+			controls->Branch 	= 1;
+			controls->MemRead 	= 0;
+			controls->MemtoReg 	= 2;
+			controls->ALUOp 	= 1;
+			controls->MemWrite 	= 0;
+			controls->ALUSrc 	= 0;
+			controls->RegWrite 	= 0;
 			break;
 		}
 		case 8://001000; "addi" add immediate
 		{
-			controls->RegDst = 0; 
-			controls->Jump =  0;
-			controls->Branch =  0;
-			controls->MemRead = 0;
-			controls->MemtoReg = 0;
-			controls->ALUOp = 0;
-			controls->MemWrite = 0;
-			controls->ALUSrc = 1;
-			controls->RegWrite = 1;
+			controls->RegDst 	= 0; 
+			controls->Jump 		= 0;
+			controls->Branch 	= 0;
+			controls->MemRead 	= 0;
+			controls->MemtoReg 	= 0;
+			controls->ALUOp 	= 0;
+			controls->MemWrite 	= 0;
+			controls->ALUSrc 	= 1;
+			controls->RegWrite 	= 1;
 			break;
 		}	
 		case 10://001010; "slti" set less than immediate
 		{ 
-			controls->RegDst = 0; 
-			controls->Jump = 0;
-			controls->Branch = 0; 
-			controls->MemRead = 0;  
-			controls->MemtoReg = 0; 
-			controls->ALUOp = 2;
-			controls->MemWrite = 0;
-			controls->ALUSrc = 1; 
-			controls->RegWrite = 1;
+			controls->RegDst 	= 0; 
+			controls->Jump 		= 0;
+			controls->Branch 	= 0; 
+			controls->MemRead 	= 0;  
+			controls->MemtoReg 	= 0; 
+			controls->ALUOp 	= 2;
+			controls->MemWrite 	= 0;
+			controls->ALUSrc 	= 1; 
+			controls->RegWrite 	= 1;
 			break;
 		}
 		case 11://001011; "sltiu" set less than immediate unsigned
 		{
-			controls->RegDst  = 0;
-			controls->Jump =  0; 
-			controls->Branch =  0; 
-			controls->MemRead = 0;  
-			controls->MemtoReg = 0; 
-			controls->ALUOp = 3;
-			controls->MemWrite = 0; 
-			controls->ALUSrc = 1; 
-			controls->RegWrite = 1;
+			controls->RegDst  	= 0;
+			controls->Jump 		= 0; 
+			controls->Branch 	= 0; 
+			controls->MemRead 	= 0;  
+			controls->MemtoReg 	= 0; 
+			controls->ALUOp 	= 3;
+			controls->MemWrite 	= 0; 
+			controls->ALUSrc 	= 1; 
+			controls->RegWrite 	= 1;
 			break;
 		}
 		case 15://001111; "lui" load uppepr immediate
 		{
-			controls->RegDst = 0; 
-			controls->Jump 	= 0; 
-			controls->Branch = 0; 
-			controls->MemRead = 1; 
-			controls->MemtoReg = 1; 
-			controls->ALUOp = 0; 
-			controls->MemWrite = 0;
-			controls->ALUSrc = 1; 
-			controls->RegWrite = 1;
+			controls->RegDst 	= 0; 
+			controls->Jump 		= 0; 
+			controls->Branch 	= 0; 
+			controls->MemRead 	= 1; 
+			controls->MemtoReg 	= 1; 
+			controls->ALUOp 	= 0; 
+			controls->MemWrite 	= 0;
+			controls->ALUSrc 	= 1; 
+			controls->RegWrite 	= 1;
 			break;
 		}
 		case 35://100011; "lw" load word
 		{
-			controls->RegDst = 0;  
-			controls->Jump = 0;    
-			controls->Branch = 0;  
-			controls->MemRead = 1; 
-			controls->MemtoReg = 1; 
-			controls->ALUOp = 0;
-			controls->MemWrite = 0; 
-			controls->ALUSrc = 1; 
-			controls->RegWrite = 1;
+			controls->RegDst 	= 0;  
+			controls->Jump 		= 0;    
+			controls->Branch 	= 0;  
+			controls->MemRead 	= 1; 
+			controls->MemtoReg 	= 1; 
+			controls->ALUOp 	= 0;
+			controls->MemWrite 	= 0; 
+			controls->ALUSrc 	= 1; 
+			controls->RegWrite 	= 1;
 			break;
 		}
 		case 43://101011; "sw" store word
 		{
-			controls->RegDst = 2;  
-			controls->Jump = 0;    
-			controls->Branch = 0;  
-			controls->MemRead = 1; 
-			controls->MemtoReg = 2; 
-			controls->ALUOp = 0;
-			controls->MemWrite = 1; 
-			controls->ALUSrc = 1; 
-			controls->RegWrite = 0;
+			controls->RegDst 	= 2;  
+			controls->Jump 		= 0;    
+			controls->Branch 	= 0;  
+			controls->MemRead 	= 1; 
+			controls->MemtoReg 	= 2; 
+			controls->ALUOp 	= 0;
+			controls->MemWrite 	= 1; 
+			controls->ALUSrc 	= 1; 
+			controls->RegWrite 	= 0;
 			break;
 		}
 		default:// illegal instruction, return 1 for halt condition
