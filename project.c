@@ -118,10 +118,8 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsi
 	*r3     = (instruction & 0xf800) >> 11;		// [15-11]
 	*funct  = (instruction & 0x1f);				// [5-0]
 	*offset = (instruction & 0xffff);			// [15-0]
-	*jsec   = (instruction & 0x3ffffff);			// [25-0]
+	*jsec   = (instruction & 0x3ffffff);		// [25-0]
 }
-
-
 
 /* instruction decode */
 /* 15 Points */
@@ -151,18 +149,18 @@ int instruction_decode(unsigned op,struct_controls *controls)
 			controls->MemtoReg 	= 2;  
 			controls->ALUOp 	= 0;// don't care  
 			controls->MemWrite 	= 0;
-			controls->ALUSrc 	= 2;
+			controls->ALUSrc 	= 2;// don't care 
 			controls->RegWrite 	= 0; 
 			break;	
 		}
 		case 4://000100; "beq" branch on equal 
 		{
-			controls->RegDst 	= 2; 
+			controls->RegDst 	= 2;// don't care  
 			controls->Jump 		= 0;
 			controls->Branch 	= 1;
 			controls->MemRead 	= 0;
 			controls->MemtoReg 	= 2;
-			controls->ALUOp 	= 1;
+			controls->ALUOp 	= 1;//subtraction
 			controls->MemWrite 	= 0;
 			controls->ALUSrc 	= 0;
 			controls->RegWrite 	= 0;
@@ -175,7 +173,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 			controls->Branch 	= 0;
 			controls->MemRead 	= 0;
 			controls->MemtoReg 	= 0;
-			controls->ALUOp 	= 0;
+			controls->ALUOp 	= 0;//addition
 			controls->MemWrite 	= 0;
 			controls->ALUSrc 	= 1;
 			controls->RegWrite 	= 1;
@@ -214,7 +212,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 			controls->Branch 	= 0; 
 			controls->MemRead 	= 1; 
 			controls->MemtoReg 	= 1; 
-			controls->ALUOp 	= 0; 
+			controls->ALUOp 	= 6;// 110 shift constant into upper 16 bits
 			controls->MemWrite 	= 0;
 			controls->ALUSrc 	= 1; 
 			controls->RegWrite 	= 1;
@@ -235,11 +233,11 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		}
 		case 43://101011; "sw" store word
 		{
-			controls->RegDst 	= 2;  
+			controls->RegDst 	= 2;// don't care 
 			controls->Jump 		= 0;    
 			controls->Branch 	= 0;  
 			controls->MemRead 	= 1; 
-			controls->MemtoReg 	= 2; 
+			controls->MemtoReg 	= 2;// don't care  
 			controls->ALUOp 	= 0;
 			controls->MemWrite 	= 1; 
 			controls->ALUSrc 	= 1; 
@@ -262,7 +260,6 @@ void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigne
 	*data2 = Reg[r2];
 
 }
-
 
 /* Sign Extend */
 //Michael Tsang
@@ -348,7 +345,133 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 /* 10 Points */
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
+	char ALUControl;
 
+	switch ((int) ALUSrc)
+	{
+		case 0:// Read data 2
+		{
+			switch ((int) ALUOp)
+			{
+				case 1:// Subtract, Branch
+				{
+					ALUControl = (int) 1;// 001 subtraction
+					ALU(data1, data2, ALUControl, ALUresult, Zero);
+					break;
+				}
+				case 7:// R-types
+				{
+					switch (funct)
+					{
+						case 32:// 100000 "Add"
+						{	
+							ALUControl = (int) 0; //000
+							ALU(data1, data2, ALUControl, ALUresult, Zero);
+							break;
+						}
+						case 34:// 100010 "Subtract"
+						{
+							ALUControl = (int) 1; //001
+							ALU(data1, data2, ALUControl, ALUresult, Zero);
+							break;
+						}
+						case 36:// 100100 "AND"
+						{
+							ALUControl = (int) 4;// 100
+							ALU(data1, data2, ALUControl, ALUresult, Zero);	
+							break;
+						}
+						case 37:// 100101 "OR"
+						{
+							ALUControl = (int) 5;// 101
+							ALU(data1, data2, ALUControl, ALUresult, Zero);	
+							break;
+						}
+						case 42:// 101010 "set less than"
+						{
+							ALUControl = (int) 2;// 010
+							ALU(data1, data2, ALUControl, ALUresult, Zero);
+							break;
+						}
+						case 43:// 101011 "set less than unsigned"
+						{
+							ALUControl = (int) 3;// 011
+							ALU(data1, data2, ALUControl, ALUresult, Zero);
+							break;					
+						}
+						//***This instruction is not listed in  Appendix A figure 1
+						case 39:// 100111 "NOT"
+						{
+							ALUControl = (int) 7;// 111		
+							break;
+						}
+						default:
+							return 1;//illegal Function
+					}
+					break;
+				}
+				// default:// return 1 for halt condition, illegal ALUOp
+				// 	return 1;
+			}
+			break;
+		}
+		case 1:// Read Sign-extended
+		{
+			switch ((int) ALUOp)
+			{
+				case 0:// add/don't care, LW SW
+				{	
+					ALUControl = (int) 0; //000 Addition
+					ALU(data1, extended_value, ALUControl, ALUresult, Zero);
+					break;
+				}
+				case 2:// 010 "Set less than immediate"
+				{
+					ALUControl = (int) 2;// 010 set less than
+					ALU(data1, extended_value, ALUControl, ALUresult, Zero);			
+					break;
+				}
+				case 3:// 010 "Set less than immediate unsigned"
+				{
+					ALUControl = (int) 3;// 011 "set less than unsigned"
+					ALU(data1, extended_value, ALUControl, ALUresult, Zero);			
+					break;
+				}
+				//***Not clear if this instruction is legal, Appendix A figure 1 does not show it
+				case 4:// 100 "AND immediate"
+				{
+					ALUControl = (int) 4;// 100 "AND"
+					ALU(data1, extended_value, ALUControl, ALUresult, Zero);			
+					break;
+				}
+				//***Not clear if this instruction is legal either. Same as AND
+				case 5:// 101 "OR immediate"
+				{
+					ALUControl = (int) 5;// 101 "OR"
+					ALU(data1, extended_value, ALUControl, ALUresult, Zero);		
+					break;
+				}
+				case 6://110, Load upper immediate, "shift left 16"
+				{
+					ALUControl = (int) 6; //110 "Shift left b by 16"
+					ALU(data1, extended_value, ALUControl, ALUresult, Zero);
+					break;
+				}
+				// default://illegal ALUOp
+				// 	return 1;
+			}
+			break;
+		}
+		case 2:// Don't care
+			break;
+		// default:// illegal ALUSrc
+		// 	return 1;
+	}
+	return 0;
+	/* 
+	halts should only result from an illegal function, 
+	commented return 1;'s are for debugging
+	*/
 }
 
 /* Read / Write Memory */
