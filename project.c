@@ -270,13 +270,13 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 	
 	
 	
-	printf("%d\n", temp);
+	//printf("%d\n", temp);
 	
 	
 	
 	if(temp == 1)
 	{
-		printf("Negative\n");
+		//printf("Negative\n");
 		
 		offset = offset | 0xFFFF0000;
 		
@@ -284,7 +284,7 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 	
 	else if (temp == 0)
 	{
-		printf("Positive\n");
+		//printf("Positive\n");
 		
 		offset = offset & 0x0000FFFF;
 	}		
@@ -292,7 +292,7 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 	
 
 	
-	printf("%lx\n", offset);
+	//printf("%lx\n", offset);
 	
 	extended_value = &offset;
 }
