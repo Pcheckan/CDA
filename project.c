@@ -294,7 +294,7 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 	
 	//printf("%lx\n", offset);
 	
-	extended_value = &offset;
+	*extended_value = offset;
 }
 
 
