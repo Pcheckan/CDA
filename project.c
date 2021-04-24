@@ -22,7 +22,6 @@ int Check_valid_jump_multiple_four(unsigned PC)
 void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 {
 	// Using a switch statement to determine which operation takes place
-
 	switch ((int) ALUControl)
 	{
 		// 000 | Z = A + B
@@ -66,6 +65,7 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 		// 110 | Shift left B by 16 bits
 		case 6:
 			*ALUresult = B << 16;
+			
 		break;
 
 		// 111 | Z = NOT A
@@ -116,7 +116,7 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsi
 	*r1     = (instruction & 0x3e00000) >> 21;	// [25-21]
 	*r2     = (instruction & 0x1f0000) >> 16;	// [20-16]
 	*r3     = (instruction & 0xf800) >> 11;		// [15-11]
-	*funct  = (instruction & 0x1f);				// [5-0]
+	*funct  = (instruction & 0x3f);				// [5-0]
 	*offset = (instruction & 0xffff);			// [15-0]
 	*jsec   = (instruction & 0x3ffffff);		// [25-0]
 }
@@ -210,8 +210,8 @@ int instruction_decode(unsigned op,struct_controls *controls)
 			controls->RegDst 	= 0; 
 			controls->Jump 		= 0; 
 			controls->Branch 	= 0; 
-			controls->MemRead 	= 1; 
-			controls->MemtoReg 	= 1; 
+			controls->MemRead 	= 0; 
+			controls->MemtoReg 	= 0; 
 			controls->ALUOp 	= 6;// 110 shift constant into upper 16 bits
 			controls->MemWrite 	= 0;
 			controls->ALUSrc 	= 1; 
@@ -303,8 +303,8 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
 	char ALUControl;
-
-	switch ((int) ALUSrc)
+			//printf("%d\n", (int) ALUOp);
+	switch ((int) ALUSrc) // Main switch to account for beq 
 	{
 		case 0:// Read data 2
 		{
@@ -313,7 +313,6 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 				case 1:// Subtract, Branch
 				{
 					ALUControl = (int) 1;// 001 subtraction
-					ALU(data1, data2, ALUControl, ALUresult, Zero);
 					break;
 				}
 				case 7:// R-types
@@ -323,37 +322,31 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 						case 32:// 100000 "Add"
 						{	
 							ALUControl = (int) 0; //000
-							ALU(data1, data2, ALUControl, ALUresult, Zero);
 							break;
 						}
 						case 34:// 100010 "Subtract"
 						{
 							ALUControl = (int) 1; //001
-							ALU(data1, data2, ALUControl, ALUresult, Zero);
 							break;
 						}
 						case 36:// 100100 "AND"
 						{
 							ALUControl = (int) 4;// 100
-							ALU(data1, data2, ALUControl, ALUresult, Zero);	
 							break;
 						}
 						case 37:// 100101 "OR"
 						{
 							ALUControl = (int) 5;// 101
-							ALU(data1, data2, ALUControl, ALUresult, Zero);	
 							break;
 						}
 						case 42:// 101010 "set less than"
 						{
 							ALUControl = (int) 2;// 010
-							ALU(data1, data2, ALUControl, ALUresult, Zero);
 							break;
 						}
 						case 43:// 101011 "set less than unsigned"
 						{
 							ALUControl = (int) 3;// 011
-							ALU(data1, data2, ALUControl, ALUresult, Zero);
 							break;					
 						}
 						//***This instruction is not listed in  Appendix A figure 1
@@ -370,53 +363,50 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 				// default:// return 1 for halt condition, illegal ALUOp
 				// 	return 1;
 			}
+			ALU(data1, data2, ALUControl, ALUresult, Zero);// send after switch result to ALU
 			break;
 		}
 		case 1:// Read Sign-extended
 		{
+			//printf("aaaaa\n");
 			switch ((int) ALUOp)
 			{
 				case 0:// add/don't care, LW SW
 				{	
 					ALUControl = (int) 0; //000 Addition
-					ALU(data1, extended_value, ALUControl, ALUresult, Zero);
 					break;
 				}
 				case 2:// 010 "Set less than immediate"
 				{
 					ALUControl = (int) 2;// 010 set less than
-					ALU(data1, extended_value, ALUControl, ALUresult, Zero);			
 					break;
 				}
 				case 3:// 010 "Set less than immediate unsigned"
 				{
 					ALUControl = (int) 3;// 011 "set less than unsigned"
-					ALU(data1, extended_value, ALUControl, ALUresult, Zero);			
 					break;
 				}
 				//***Not clear if this instruction is legal, Appendix A figure 1 does not show it
 				case 4:// 100 "AND immediate"
 				{
 					ALUControl = (int) 4;// 100 "AND"
-					ALU(data1, extended_value, ALUControl, ALUresult, Zero);			
 					break;
 				}
 				//***Not clear if this instruction is legal either. Same as AND
 				case 5:// 101 "OR immediate"
 				{
 					ALUControl = (int) 5;// 101 "OR"
-					ALU(data1, extended_value, ALUControl, ALUresult, Zero);		
 					break;
 				}
 				case 6://110, Load upper immediate, "shift left 16"
 				{
 					ALUControl = (int) 6; //110 "Shift left b by 16"
-					ALU(data1, extended_value, ALUControl, ALUresult, Zero);
 					break;
 				}
 				// default://illegal ALUOp
 				// 	return 1;
 			}
+			ALU(data1, extended_value, ALUControl, ALUresult, Zero);
 			break;
 		}
 		case 2:// Don't care
@@ -506,19 +496,20 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 /* 10 Points */
 void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char Zero,unsigned *PC)
 {
-	PC = PC + 4; 
+	*PC += 4; 
 	
 	extended_value = extended_value << 2;
 	
 	if(Branch == 1 && Zero == 1)
 	{
-		extended_value = extended_value + PC;
+		*PC = extended_value + *PC;
+		//extended_value = extended_value + *PC;
 	}
 	
 	
 	if(Jump == 1)
 	{
-		jsec = jsec<<2; 
+		*PC = jsec<<2; 
 	}
 }
 
